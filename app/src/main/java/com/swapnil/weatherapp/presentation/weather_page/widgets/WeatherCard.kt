@@ -1,4 +1,4 @@
-package com.swapnil.weatherapp.presentation.weather_page
+package com.swapnil.weatherapp.presentation.weather_page.widgets
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -28,6 +28,7 @@ import com.swapnil.weatherapp.domain.weather.WeatherData
 import com.swapnil.weatherapp.domain.weather.WeatherInfo
 import com.swapnil.weatherapp.domain.weather.WeatherType
 import com.swapnil.weatherapp.presentation.ui.theme.WeatherAppTheme
+import com.swapnil.weatherapp.presentation.weather_page.states.WeatherState
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import kotlin.math.roundToInt
@@ -59,24 +60,26 @@ fun WeatherCard(
                     }", modifier = Modifier.align(alignment = Alignment.End), color = Color.White
                 )
                 Spacer(modifier = Modifier.height(16.dp))
-                Image(
-                    painter = painterResource(id = data.weatherType.iconRes),
-                    contentDescription = null,
-                    modifier = Modifier.width(200.dp),
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    text = "${data.temperatureCelsius}°C",
-                    fontSize = 40.sp,
-                    color = Color.White,
-                )
+                Row {
+                    Image(
+                        painter = painterResource(id = data.weatherType.iconRes),
+                        contentDescription = null,
+                        modifier = Modifier.width(100.dp),
+                    )
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Text(
+                        text = "${data.temperatureCelsius}°C",
+                        fontSize = 40.sp,
+                        color = Color.White,
+                    )
+                }
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
                     text = data.weatherType.weatherDesc,
                     fontSize = 30.sp,
                     color = Color.White,
                 )
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(16.dp))
                 Row(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     modifier = Modifier.fillMaxWidth()
@@ -110,6 +113,8 @@ private fun WeatherCardPreview() {
     WeatherAppTheme {
         val state = WeatherState(
             weatherInfo = WeatherInfo(
+                weatherDataWeek = listOf(),
+                currentDay = listOf(),
                 weatherDataPerDay = mapOf(), currentWeatherData = WeatherData(
                     time = LocalDateTime.now(),
                     temperatureCelsius = 0.0,

@@ -1,4 +1,4 @@
-package com.swapnil.weatherapp.presentation.weather_page
+package com.swapnil.weatherapp.presentation.weather_page.widgets
 
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
