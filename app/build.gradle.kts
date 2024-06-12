@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
@@ -8,6 +10,20 @@ plugins {
 }
 
 android {
+    signingConfigs {
+        val p = Properties()
+        p.load(project.rootProject.file("local.properties").reader())
+        val keyFilePath: String = p.getProperty("KEY_FILE_PATH")
+        val keyPass: String = p.getProperty("KEY_PASSWORD")
+        val keyA: String = p.getProperty("KEY_ALIAS")
+
+        create("release") {
+            storeFile = file(keyFilePath)
+            storePassword = keyPass
+            keyPassword = keyPass
+            keyAlias = keyA
+        }
+    }
     namespace = "com.swapnil.weatherapp"
     compileSdk = 34
 
@@ -31,6 +47,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("release")
         }
     }
     compileOptions {
