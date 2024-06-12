@@ -14,7 +14,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.swapnil.weatherapp.presentation.ui.theme.WeatherAppTheme
+import com.swapnil.weatherapp.features.dashboard.presentation.ui.theme.WeatherAppTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

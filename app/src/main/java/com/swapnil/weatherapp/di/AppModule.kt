@@ -3,7 +3,7 @@ package com.swapnil.weatherapp.di
 import android.app.Application
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
-import com.swapnil.weatherapp.data.remote.WeatherApi
+import com.swapnil.weatherapp.features.dashboard.data.remote.WeatherApi
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -18,7 +18,7 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideRetrofit(): WeatherApi{
+    fun provideRetrofit(): WeatherApi {
         return Retrofit.Builder()
             .baseUrl("https://api.open-meteo.com/")
             .addConverterFactory(MoshiConverterFactory.create())

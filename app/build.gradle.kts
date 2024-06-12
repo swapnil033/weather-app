@@ -6,6 +6,8 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 
     alias(libs.plugins.org.jetbrains.kotlin.kapt)
+    alias(libs.plugins.com.google.devtools.ksp)
+
     alias (libs.plugins.dagger.hilt)
 }
 
@@ -86,9 +88,9 @@ dependencies {
 
     //Dagger - Hilt
     implementation (libs.hilt.android)
-    kapt (libs.hilt.android.compiler)
+    ksp (libs.hilt.android.compiler)
     //implementation (libs.androidx.hilt.lifecycle.viewmodel)
-    kapt (libs.androidx.hilt.compiler)
+    ksp (libs.androidx.hilt.compiler)
     implementation (libs.androidx.hilt.navigation.compose)
 
     // Location Services
@@ -99,7 +101,13 @@ dependencies {
     implementation (libs.converter.moshi)
     implementation (libs.logging.interceptor)
 
+    //compose viewmodel
     implementation (libs.androidx.lifecycle.viewmodel.compose)
+
+    //room
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -108,4 +116,5 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+    implementation(kotlin("reflect"))
 }
