@@ -1,6 +1,5 @@
 package com.swapnil.weatherapp.features.dashboard.data.mappers
 
-import com.swapnil.weatherapp.features.dashboard.data.remote.WeatherDataDto
 import com.swapnil.weatherapp.features.dashboard.data.remote.WeatherDto
 import com.swapnil.weatherapp.features.dashboard.domain.weather.WeatherData
 import com.swapnil.weatherapp.features.dashboard.domain.weather.WeatherInfo
@@ -11,21 +10,47 @@ import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.util.Locale
 
-data class IndexedWeatherData(
-    val index: Int, val data: WeatherData
-)
 
-fun WeatherDataDto.toWeatherDataMap(): Map<Int, List<WeatherData>> {
-    return time.mapIndexed { index, time ->
-        val temperature = temperatures[index]
-        val weatherCode = weatherCodes[index]
-        val windSpeed = windSpeed[index]
-        val pressure = pressures[index]
-        val humidity = humidities[index]
+fun WeatherDto.toWeatherLocalData(): List<WeatherData>{
 
-        IndexedWeatherData(
-            index = index, data = WeatherData(
+    val list = mutableListOf<WeatherData>()
+    weatherData.apply {
+        time.forEachIndexed { index, time ->
+            val temperature = temperatures[index]
+            val weatherCode = weatherCodes[index]
+            val windSpeed = windSpeed[index]
+            val pressure = pressures[index]
+            val humidity = humidities[index]
+
+            list += WeatherData(
                 time = LocalDateTime.parse(time, DateTimeFormatter.ISO_DATE_TIME),
+                temperatureCelsius = temperature,
+                pressure = pressure,
+                windSpeed = windSpeed,
+                humidity = humidity,
+                weatherType = WeatherType.fromWMO(weatherCode)
+            )
+        }
+    }
+
+    return  list
+}
+
+fun List<WeatherData>.toWeatherDataMap(): Map<Int, List<WeatherData>> {
+
+    val list = mutableListOf<IndexedWeatherData>()
+
+    forEachIndexed { index, weatherData ->
+        val time = weatherData.time
+        val temperature = weatherData.temperatureCelsius
+        val weatherCode = weatherData.weatherType.code
+        val windSpeed = weatherData.temperatureCelsius
+        val pressure = weatherData.temperatureCelsius
+        val humidity = weatherData.temperatureCelsius
+
+        list += IndexedWeatherData(
+            index = index, data = WeatherData(
+                time = time,
                 temperatureCelsius = temperature,
                 windSpeed = windSpeed,
                 pressure = pressure,
@@ -33,15 +58,16 @@ fun WeatherDataDto.toWeatherDataMap(): Map<Int, List<WeatherData>> {
                 weatherType = WeatherType.fromWMO(weatherCode)
             )
         )
-    }.groupBy {
+    }
+
+    return list.groupBy {
         it.index / 24
     }.mapValues {
         it.value.map { it.data }
     }
 }
 
-
-fun WeatherDataDto.toWeatherWeekDataList(): List<WeatherWeekDayData> {
+fun List<WeatherData>.toWeatherWeekDataList(): List<WeatherWeekDayData> {
 
     val weatherDataPerDay = this.toWeatherDataMap()
 
@@ -63,10 +89,9 @@ fun WeatherDataDto.toWeatherWeekDataList(): List<WeatherWeekDayData> {
     return list
 }
 
-fun WeatherDto.toWeatherInfo(): WeatherInfo {
-
-    val weatherDataWeek = weatherData.toWeatherWeekDataList()
-    val weatherDataPerDay = weatherData.toWeatherDataMap()
+fun List<WeatherData>.toWeatherInfo(): WeatherInfo {
+    val weatherDataWeek = toWeatherWeekDataList()
+    val weatherDataPerDay = toWeatherDataMap()
     val now = LocalDateTime.now()
 
     val currentDay = weatherDataPerDay[0]!!

@@ -1,8 +1,12 @@
 package com.swapnil.weatherapp.di
 
 import android.app.Application
+import androidx.room.Room
+import androidx.room.RoomDatabase
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
+import com.swapnil.weatherapp.features.dashboard.data.local.WeatherDao
+import com.swapnil.weatherapp.features.dashboard.data.local.WeatherDb
 import com.swapnil.weatherapp.features.dashboard.data.remote.WeatherApi
 import dagger.Module
 import dagger.Provides
@@ -19,18 +23,34 @@ object AppModule {
     @Provides
     @Singleton
     fun provideRetrofit(): WeatherApi {
-        return Retrofit.Builder()
-            .baseUrl("https://api.open-meteo.com/")
-            .addConverterFactory(MoshiConverterFactory.create())
-            .build()
-            .create(WeatherApi::class.java);
+        return Retrofit.Builder().baseUrl("https://api.open-meteo.com/")
+            .addConverterFactory(MoshiConverterFactory.create()).build()
+            .create(WeatherApi::class.java)
     }
 
     @Provides
     @Singleton
     fun provideFusedLocationProviderClient(
         app: Application
-    ): FusedLocationProviderClient{
-        return LocationServices.getFusedLocationProviderClient(app);
+    ): FusedLocationProviderClient {
+        return LocationServices.getFusedLocationProviderClient(app)
+    }
+
+    @Provides
+    @Singleton
+    fun provideRoomDB(app: Application): WeatherDb {
+        return Room.databaseBuilder(
+            app,
+            WeatherDb::class.java,
+            WeatherDb.DATABASE_NAME
+        ).fallbackToDestructiveMigration().build()
+    }
+
+    @Provides
+    @Singleton
+    fun providesWeatherDao(
+        db: WeatherDb
+    ): WeatherDao{
+        return  db.weatherDao
     }
 }

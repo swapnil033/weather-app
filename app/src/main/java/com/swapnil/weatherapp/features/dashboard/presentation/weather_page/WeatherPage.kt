@@ -61,7 +61,7 @@ fun WeatherScreenRoot(
 
                 if (perms.values.contains(false)) return@rememberLauncherForActivityResult
 
-                viewModel.loadWeatherInfo()
+                viewModel.loadWeatherInfoFromLocal()
             })
 
     LaunchedEffect(true) {

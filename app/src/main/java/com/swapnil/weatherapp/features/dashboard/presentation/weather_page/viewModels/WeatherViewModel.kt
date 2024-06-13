@@ -5,40 +5,69 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.swapnil.weatherapp.features.dashboard.data.mappers.toWeatherInfo
 import com.swapnil.weatherapp.features.dashboard.domain.location.LocationRepository
-import com.swapnil.weatherapp.features.dashboard.domain.repository.WeatherRepository
+import com.swapnil.weatherapp.features.dashboard.domain.repository.WeatherLocalRepository
+import com.swapnil.weatherapp.features.dashboard.domain.repository.WeatherRemoteRepository
 import com.swapnil.weatherapp.features.dashboard.domain.util.Resource
 import com.swapnil.weatherapp.features.dashboard.domain.weather.WeatherData
 import com.swapnil.weatherapp.features.dashboard.domain.weather.WeatherWeekDayData
 import com.swapnil.weatherapp.features.dashboard.presentation.weather_page.events.WeatherEvent
 import com.swapnil.weatherapp.features.dashboard.presentation.weather_page.states.WeatherState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class WeatherViewModel @Inject constructor(
-    private val repository: WeatherRepository,
+    private val repository: WeatherRemoteRepository,
     private val location: LocationRepository,
+    private val localRepository: WeatherLocalRepository,
 ) : ViewModel() {
     var state by mutableStateOf(WeatherState())
         private set
 
-    fun loadWeatherInfo() {
+    fun loadWeatherInfoFromLocal(){
+        state = state.copy(
+            isLoading = true, errorMessage = null
+        )
+        localRepository.getWeatherData().onEach { data ->
+            if(data.isEmpty()) {
+                loadWeatherInfo()
+                return@onEach
+            }
+
+            state = state.copy(
+                weatherInfo = data.toWeatherInfo(),
+                isLoading = false,
+                errorMessage = null,
+            )
+        }.launchIn(viewModelScope)
+    }
+    private fun loadWeatherInfo() {
         viewModelScope.launch {
             state = state.copy(
                 isLoading = true, errorMessage = null
             )
             location.getLocation()?.let { location ->
                 val result = repository.getWeatherData(location.latitude, location.longitude)
-
                 when (result) {
                     is Resource.Success -> {
-                        state = state.copy(
-                            weatherInfo = result.data,
-                            isLoading = false,
-                            errorMessage = null,
-                        )
+                        if(result.data == null){
+                            state = state.copy(
+                                weatherInfo = null,
+                                isLoading = false,
+                                errorMessage = "No data found",
+                            )
+                            return@launch }
+
+                        async{ localRepository.deleteWeatherData() }.await()
+                        async{ localRepository.addWeather(result.data) }.await()
+
+                        loadWeatherInfoFromLocal()
                     }
 
                     is Resource.Error -> {
