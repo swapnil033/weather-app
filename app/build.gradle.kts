@@ -88,6 +88,7 @@ dependencies {
 
     //Dagger - Hilt
     implementation (libs.hilt.android)
+    testImplementation(libs.junit.junit)
     ksp (libs.hilt.android.compiler)
     //implementation (libs.androidx.hilt.lifecycle.viewmodel)
     ksp (libs.androidx.hilt.compiler)
@@ -117,4 +118,6 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation(kotlin("reflect"))
+    //truth
+    testImplementation (libs.truth)
 }
