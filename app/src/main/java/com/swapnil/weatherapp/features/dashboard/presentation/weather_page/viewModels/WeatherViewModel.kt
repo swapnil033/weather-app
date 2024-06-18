@@ -15,7 +15,6 @@ import com.swapnil.weatherapp.features.dashboard.domain.weather.WeatherWeekDayDa
 import com.swapnil.weatherapp.features.dashboard.presentation.weather_page.events.WeatherEvent
 import com.swapnil.weatherapp.features.dashboard.presentation.weather_page.states.WeatherState
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -32,7 +31,9 @@ class WeatherViewModel @Inject constructor(
 
     fun loadWeatherInfoFromLocal(){
         state = state.copy(
-            isLoading = true, errorMessage = null
+            isLoading = true,
+            isRefreshing = false,
+            errorMessage = null
         )
         localRepository.getWeatherData().onEach { data ->
             if(data.isEmpty()) {
@@ -43,15 +44,28 @@ class WeatherViewModel @Inject constructor(
             state = state.copy(
                 weatherInfo = data.toWeatherInfo(),
                 isLoading = false,
+                isRefreshing = false,
                 errorMessage = null,
             )
         }.launchIn(viewModelScope)
     }
-    private fun loadWeatherInfo() {
+
+    fun loadWeatherInfo(isRefreshing: Boolean = false) {
+        val deleteJob = viewModelScope.launch {
+            localRepository.deleteWeatherData()
+        }
+        fun insertJob(data: List<WeatherData> ) = viewModelScope.launch {
+            localRepository.addWeather(data)
+        }
+
         viewModelScope.launch {
             state = state.copy(
-                isLoading = true, errorMessage = null
+                isLoading = true, errorMessage = null,
+                isRefreshing = isRefreshing
             )
+
+            deleteJob.join()
+
             location.getLocation()?.let { location ->
                 val result = repository.getWeatherData(location.latitude, location.longitude)
                 when (result) {
@@ -60,14 +74,18 @@ class WeatherViewModel @Inject constructor(
                             state = state.copy(
                                 weatherInfo = null,
                                 isLoading = false,
+                                isRefreshing = false,
                                 errorMessage = "No data found",
                             )
                             return@launch }
 
-                        async{ localRepository.deleteWeatherData() }.await()
-                        async{ localRepository.addWeather(result.data) }.await()
-
+                        insertJob(result.data).join()
+                        //delay(2000L)
                         loadWeatherInfoFromLocal()
+
+
+
+
                     }
 
                     is Resource.Error -> {

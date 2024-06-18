@@ -7,5 +7,6 @@ data class WeatherState(
     val weatherInfo: WeatherInfo? = null,
     val currentHour: Int = LocalDateTime.now().hour,
     val isLoading: Boolean = false,
+    val isRefreshing: Boolean = false,
     val errorMessage: String? = null
 )

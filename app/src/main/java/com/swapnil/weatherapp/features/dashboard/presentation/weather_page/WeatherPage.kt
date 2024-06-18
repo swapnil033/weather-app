@@ -14,6 +14,11 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -31,9 +36,13 @@ import com.swapnil.weatherapp.features.dashboard.presentation.ui.theme.WeatherAp
 import com.swapnil.weatherapp.features.dashboard.presentation.weather_page.events.WeatherEvent
 import com.swapnil.weatherapp.features.dashboard.presentation.weather_page.states.WeatherState
 import com.swapnil.weatherapp.features.dashboard.presentation.weather_page.viewModels.WeatherViewModel
+import com.swapnil.weatherapp.features.dashboard.presentation.weather_page.widgets.RefreshCompose
 import com.swapnil.weatherapp.features.dashboard.presentation.weather_page.widgets.WeatherCard
 import com.swapnil.weatherapp.features.dashboard.presentation.weather_page.widgets.WeatherForecast
 import com.swapnil.weatherapp.features.dashboard.presentation.weather_page.widgets.WeekDisplay
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 
 private val permissionsToRequest = arrayOf(
@@ -72,78 +81,77 @@ fun WeatherScreenRoot(
 
     WeatherScreen(state = viewModel.state,
         onDaySelect = { viewModel.onAction(WeatherEvent.OnDayChange(it)) },
-        onHourSelect = { viewModel.onAction(WeatherEvent.OnHourChange(it)) })
+        onHourSelect = { viewModel.onAction(WeatherEvent.OnHourChange(it)) },
+        onRefresh = { viewModel.loadWeatherInfo() },
+        )
 }
 
 @Composable
 private fun WeatherScreen(
     state: WeatherState,
     onDaySelect: (WeatherWeekDayData) -> Unit,
-    onHourSelect: (WeatherData) -> Unit
+    onHourSelect: (WeatherData) -> Unit,
+    onRefresh: () -> Unit,
 ) {
 
+    val scope = rememberCoroutineScope()
 
-    Box(
-        modifier = Modifier.fillMaxSize()
-    ) {
-
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(color = DarkBlue)
-        ) {
-            item {
-                WeatherCard(state = state, backgroundColor = DeepBlue)
-                Spacer(modifier = Modifier.height(16.dp))
-                state.weatherInfo?.weatherDataWeek?.let {
-                    WeekDisplay(it, modifier = Modifier.padding(horizontal = 16.dp)) {
-                        onDaySelect(it)
-                    }
-                }
-                Spacer(modifier = Modifier.height(16.dp))
-                state.weatherInfo?.currentDay?.let { data ->
-                    WeatherForecast(
-                        title = "Today",
-                        selectedHour = state.weatherInfo.currentWeatherData?.time?.hour!!,
-                        data = data,
-                    ) { onHourSelect(it) }
-                }/*state.weatherInfo?.weatherDataPerDay?.get(1)?.let{data ->
-                    WeatherForecast(title = "Tomorrow", data = data)
-                }
-                state.weatherInfo?.weatherDataPerDay?.get(2)?.let{data ->
-                    WeatherForecast(title = "day after Tomorrow", data = data)
-                }
-                state.weatherInfo?.weatherDataPerDay?.get(3)?.let{data ->
-                    WeatherForecast(title = "-", data = data)
-                }
-                state.weatherInfo?.weatherDataPerDay?.get(4)?.let{data ->
-                    WeatherForecast(title = "-", data = data)
-                }
-                state.weatherInfo?.weatherDataPerDay?.get(5)?.let{data ->
-                    WeatherForecast(title = "-", data = data)
-                }
-                state.weatherInfo?.weatherDataPerDay?.get(6)?.let{data ->
-                    WeatherForecast(title = "-", data = data)
-                }*/
+    RefreshCompose(
+        isRefreshing = state.isRefreshing,
+        onRefresh = {
+            scope.launch {
+                onRefresh()
             }
         }
+    ) {
+        Box(
+            modifier = Modifier.fillMaxSize()
+        ) {
 
-        if (state.isLoading) {
-            CircularProgressIndicator(
-                modifier = Modifier.align(Alignment.Center)
-            )
-        }
-        state.errorMessage?.let {
-            Text(
-                text = it,
-                color = Color.Red,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.align(
-                    Alignment.Center
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(color = DarkBlue)
+            ) {
+                item {
+                    WeatherCard(state = state, backgroundColor = DeepBlue)
+                    Spacer(modifier = Modifier.height(16.dp))
+                    state.weatherInfo?.weatherDataWeek?.let {
+                        WeekDisplay(it, modifier = Modifier.padding(horizontal = 16.dp)) {
+                            onDaySelect(it)
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+                    state.weatherInfo?.currentDay?.let { data ->
+                        WeatherForecast(
+                            title = "Today",
+                            selectedHour = state.weatherInfo.currentWeatherData?.time?.hour!!,
+                            data = data,
+                        ) { onHourSelect(it) }
+                    }
+                }
+            }
+
+            if (state.isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.align(Alignment.Center)
                 )
-            )
+            }
+            state.errorMessage?.let {
+                Text(
+                    text = it,
+                    color = Color.Red,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.align(
+                        Alignment.Center
+                    )
+                )
+            }
         }
     }
+
+
+
 }
 
 
@@ -152,6 +160,11 @@ private fun WeatherScreen(
 private fun WeatherScreenPreview() {
     WeatherAppTheme {
         val state = WeatherState()
-        WeatherScreen(state = state, onDaySelect = {}, onHourSelect = {})
+        WeatherScreen(
+            state = state,
+            onDaySelect = {},
+            onHourSelect = {},
+            onRefresh = {},
+        )
     }
 }
