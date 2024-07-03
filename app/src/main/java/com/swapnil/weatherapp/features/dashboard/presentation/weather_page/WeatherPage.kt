@@ -82,7 +82,7 @@ fun WeatherScreenRoot(
     WeatherScreen(state = viewModel.state,
         onDaySelect = { viewModel.onAction(WeatherEvent.OnDayChange(it)) },
         onHourSelect = { viewModel.onAction(WeatherEvent.OnHourChange(it)) },
-        onRefresh = { viewModel.loadWeatherInfo() },
+        onRefresh = { viewModel.loadWeatherInfo(true) },
         )
 }
 

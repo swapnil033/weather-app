@@ -9,6 +9,7 @@ import com.swapnil.weatherapp.features.dashboard.data.mappers.toWeatherInfo
 import com.swapnil.weatherapp.features.dashboard.domain.location.LocationRepository
 import com.swapnil.weatherapp.features.dashboard.domain.repository.WeatherLocalRepository
 import com.swapnil.weatherapp.features.dashboard.domain.repository.WeatherRemoteRepository
+import com.swapnil.weatherapp.features.dashboard.domain.use_cases.GetRemoteDataUseCase
 import com.swapnil.weatherapp.features.dashboard.domain.util.Resource
 import com.swapnil.weatherapp.features.dashboard.domain.weather.WeatherData
 import com.swapnil.weatherapp.features.dashboard.domain.weather.WeatherWeekDayData
@@ -22,9 +23,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class WeatherViewModel @Inject constructor(
-    private val repository: WeatherRemoteRepository,
     private val location: LocationRepository,
     private val localRepository: WeatherLocalRepository,
+    private val useCase: GetRemoteDataUseCase,
 ) : ViewModel() {
     var state by mutableStateOf(WeatherState())
         private set
@@ -51,12 +52,6 @@ class WeatherViewModel @Inject constructor(
     }
 
     fun loadWeatherInfo(isRefreshing: Boolean = false) {
-        val deleteJob = viewModelScope.launch {
-            localRepository.deleteWeatherData()
-        }
-        fun insertJob(data: List<WeatherData> ) = viewModelScope.launch {
-            localRepository.addWeather(data)
-        }
 
         viewModelScope.launch {
             state = state.copy(
@@ -64,11 +59,10 @@ class WeatherViewModel @Inject constructor(
                 isRefreshing = isRefreshing
             )
 
-            deleteJob.join()
 
             location.getLocation()?.let { location ->
-                val result = repository.getWeatherData(location.latitude, location.longitude)
-                when (result) {
+
+                when (val result = useCase(location.latitude, location.longitude)) {
                     is Resource.Success -> {
                         if(result.data == null){
                             state = state.copy(
@@ -77,14 +71,10 @@ class WeatherViewModel @Inject constructor(
                                 isRefreshing = false,
                                 errorMessage = "No data found",
                             )
-                            return@launch }
+                            return@launch
+                        }
 
-                        insertJob(result.data).join()
-                        //delay(2000L)
                         loadWeatherInfoFromLocal()
-
-
-
 
                     }
 

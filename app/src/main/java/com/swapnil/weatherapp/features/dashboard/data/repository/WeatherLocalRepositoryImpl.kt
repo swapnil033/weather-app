@@ -4,6 +4,7 @@ import com.swapnil.weatherapp.features.dashboard.data.local.WeatherDao
 import com.swapnil.weatherapp.features.dashboard.domain.repository.WeatherLocalRepository
 import com.swapnil.weatherapp.features.dashboard.domain.weather.WeatherData
 import kotlinx.coroutines.flow.Flow
+import java.time.LocalDateTime
 import javax.inject.Inject
 
 class WeatherLocalRepositoryImpl @Inject constructor(
@@ -20,4 +21,10 @@ class WeatherLocalRepositoryImpl @Inject constructor(
     override suspend fun deleteWeatherData() {
         weatherDao.deleteWeatherData()
     }
+
+    override suspend fun deleteOldData(hour: LocalDateTime) {
+        weatherDao.deleteWeatherDataEntry(hour)
+    }
+
+
 }

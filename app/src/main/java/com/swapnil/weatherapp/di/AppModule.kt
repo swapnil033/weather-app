@@ -8,6 +8,9 @@ import com.google.android.gms.location.LocationServices
 import com.swapnil.weatherapp.features.dashboard.data.local.WeatherDao
 import com.swapnil.weatherapp.features.dashboard.data.local.WeatherDb
 import com.swapnil.weatherapp.features.dashboard.data.remote.WeatherApi
+import com.swapnil.weatherapp.features.dashboard.domain.repository.WeatherLocalRepository
+import com.swapnil.weatherapp.features.dashboard.domain.repository.WeatherRemoteRepository
+import com.swapnil.weatherapp.features.dashboard.domain.use_cases.GetRemoteDataUseCase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -69,5 +72,16 @@ object AppModule {
         db: WeatherDb
     ): WeatherDao{
         return  db.weatherDao
+    }
+
+    @Provides
+    @Singleton
+    fun provideGetRemoteDataUseCase(
+        localRepository: WeatherLocalRepository,
+        repository: WeatherRemoteRepository,
+    ): GetRemoteDataUseCase {
+        return GetRemoteDataUseCase(
+            localRepository, repository
+        )
     }
 }
