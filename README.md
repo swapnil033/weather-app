@@ -12,3 +12,5 @@ While building this app I got chance to practice on :
 - retrofit api integration
 
 [Click here for app preview](https://youtube.com/shorts/wrZ9nl5HJSA?feature=share)
+
+[click here to download](app/release)
