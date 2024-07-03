@@ -13,4 +13,4 @@ While building this app I got chance to practice on :
 
 [Click here for app preview](https://youtube.com/shorts/wrZ9nl5HJSA?feature=share)
 
-[click here to download](app/release)
+[click here to download app](app/release)
